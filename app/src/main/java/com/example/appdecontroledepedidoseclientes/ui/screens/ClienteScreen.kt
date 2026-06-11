@@ -1,5 +1,6 @@
 package com.example.appdecontroledepedidoseclientes.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,9 +13,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.appdecontroledepedidoseclientes.data.entity.Cliente
 import com.example.appdecontroledepedidoseclientes.ui.viewmodel.ClienteViewModel
@@ -32,43 +35,53 @@ fun ClienteScreen(navController: NavController, viewModel: ClienteViewModel) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Gerenciar Clientes", fontWeight = FontWeight.SemiBold) },
+            MediumTopAppBar(
+                title = { Text("Clientes", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
+                actions = {
+                    IconButton(onClick = { /* Implementar busca futuramente */ }) {
+                        Icon(Icons.Default.Search, contentDescription = "Buscar")
+                    }
+                }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
+            ExtendedFloatingActionButton(
                 onClick = { 
                     editingCliente = null
                     nome = ""; telefone = ""; email = ""; cidade = ""
                     showDialog = true 
                 },
+                icon = { Icon(Icons.Filled.PersonAdd, "Adicionar") },
+                text = { Text("Novo Cliente") },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Icon(Icons.Filled.Add, "Adicionar Cliente")
-            }
+                shape = RoundedCornerShape(20.dp)
+            )
         }
     ) { padding ->
         if (clientes.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("Nenhum cliente cadastrado", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        Icons.Default.PeopleOutline, 
+                        null, 
+                        modifier = Modifier.size(64.dp), 
+                        tint = MaterialTheme.colorScheme.outline
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Nenhum cliente cadastrado", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(clientes) { cliente ->
                     ClienteCard(
@@ -84,38 +97,43 @@ fun ClienteScreen(navController: NavController, viewModel: ClienteViewModel) {
                         onDelete = { viewModel.delete(cliente) }
                     )
                 }
+                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
 
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
-                title = { Text(if (editingCliente == null) "Novo Cliente" else "Editar Cliente") },
+                title = { Text(if (editingCliente == null) "Novo Cliente" else "Editar Cliente", fontWeight = FontWeight.Bold) },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(top = 8.dp)) {
                         OutlinedTextField(
                             value = nome, onValueChange = { nome = it }, 
                             label = { Text("Nome Completo") },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(16.dp),
+                            leadingIcon = { Icon(Icons.Default.Person, null) }
                         )
                         OutlinedTextField(
                             value = telefone, onValueChange = { telefone = it }, 
                             label = { Text("Telefone") },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(16.dp),
+                            leadingIcon = { Icon(Icons.Default.Phone, null) }
                         )
                         OutlinedTextField(
                             value = email, onValueChange = { email = it }, 
                             label = { Text("E-mail") },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(16.dp),
+                            leadingIcon = { Icon(Icons.Default.Email, null) }
                         )
                         OutlinedTextField(
                             value = cidade, onValueChange = { cidade = it }, 
                             label = { Text("Cidade") },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(16.dp),
+                            leadingIcon = { Icon(Icons.Default.LocationCity, null) }
                         )
                     }
                 },
@@ -129,7 +147,7 @@ fun ClienteScreen(navController: NavController, viewModel: ClienteViewModel) {
                             if (editingCliente == null) viewModel.insert(c) else viewModel.update(c)
                             showDialog = false
                         },
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(12.dp)
                     ) { Text("Salvar") }
                 },
                 dismissButton = {
@@ -144,22 +162,25 @@ fun ClienteScreen(navController: NavController, viewModel: ClienteViewModel) {
 fun ClienteCard(cliente: Cliente, onEdit: () -> Unit, onDelete: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
-                modifier = Modifier.size(48.dp),
-                shape = CircleShape,
+                modifier = Modifier.size(56.dp),
+                shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.primaryContainer
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = cliente.nome.take(1).uppercase(),
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
@@ -168,17 +189,24 @@ fun ClienteCard(cliente: Cliente, onEdit: () -> Unit, onDelete: () -> Unit) {
             Spacer(modifier = Modifier.width(16.dp))
             
             Column(modifier = Modifier.weight(1f)) {
-                Text(cliente.nome, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                InfoRow(Icons.Default.Phone, cliente.telefone)
-                InfoRow(Icons.Default.LocationOn, cliente.cidade)
+                Text(
+                    cliente.nome, 
+                    style = MaterialTheme.typography.titleMedium, 
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                InfoRow(Icons.Default.LocalPhone, cliente.telefone)
+                InfoRow(Icons.Default.Mail, cliente.email)
+                InfoRow(Icons.Default.Place, cliente.cidade)
             }
             
-            Row {
+            Column {
                 IconButton(onClick = onEdit) {
                     Icon(Icons.Default.Edit, "Editar", tint = MaterialTheme.colorScheme.primary)
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, "Excluir", tint = MaterialTheme.colorScheme.error)
+                    Icon(Icons.Default.DeleteOutline, "Excluir", tint = MaterialTheme.colorScheme.error)
                 }
             }
         }
@@ -187,9 +215,14 @@ fun ClienteCard(cliente: Cliente, onEdit: () -> Unit, onDelete: () -> Unit) {
 
 @Composable
 fun InfoRow(icon: ImageVector, text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 1.dp)) {
         Icon(icon, null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = text, 
+            style = MaterialTheme.typography.bodySmall, 
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
+        )
     }
 }

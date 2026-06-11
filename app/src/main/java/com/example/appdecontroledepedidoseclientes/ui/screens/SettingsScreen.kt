@@ -1,6 +1,8 @@
 package com.example.appdecontroledepedidoseclientes.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -8,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,8 +32,8 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Configurações", fontWeight = FontWeight.SemiBold) },
+            MediumTopAppBar(
+                title = { Text("Configurações", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
@@ -43,87 +46,115 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // Seção de Perfil
-            Column {
-                Text(
-                    text = "Perfil",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                OutlinedTextField(
-                    value = editingName,
-                    onValueChange = { editingName = it },
-                    label = { Text("Seu Nome") },
-                    leadingIcon = { Icon(Icons.Default.Person, null) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    trailingIcon = {
-                        if (editingName != userName) {
-                            IconButton(onClick = { viewModel.saveUserName(editingName) }) {
-                                Icon(Icons.Default.Check, "Salvar", tint = MaterialTheme.colorScheme.primary)
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            modifier = Modifier.size(40.dp),
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.Person, null, tint = MaterialTheme.colorScheme.onPrimary)
                             }
                         }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Perfil do Usuário",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
-                )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    OutlinedTextField(
+                        value = editingName,
+                        onValueChange = { editingName = it },
+                        label = { Text("Nome de Exibição") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        trailingIcon = {
+                            if (editingName != userName) {
+                                IconButton(onClick = { viewModel.saveUserName(editingName) }) {
+                                    Icon(Icons.Default.Check, "Salvar", tint = MaterialTheme.colorScheme.primary)
+                                }
+                            }
+                        }
+                    )
+                }
             }
 
             // Seção de Preferências
             Column {
                 Text(
-                    text = "Preferências",
-                    style = MaterialTheme.typography.titleSmall,
+                    text = "Aparência e Sistema",
+                    style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(start = 8.dp, bottom = 12.dp)
                 )
                 
-                SettingsToggleRow(
-                    title = "Tema Escuro",
-                    subtitle = "Alternar entre modo claro e escuro",
-                    icon = Icons.Default.Settings,
-                    checked = isDarkMode,
-                    onCheckedChange = { viewModel.saveDarkMode(it) }
-                )
-                
-                Divider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
-                
-                SettingsToggleRow(
-                    title = "Notificações",
-                    subtitle = "Receber alertas do sistema",
-                    icon = Icons.Default.Notifications,
-                    checked = notifications,
-                    onCheckedChange = { viewModel.saveNotifications(it) }
-                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp)
+                ) {
+                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                        SettingsToggleRow(
+                            title = "Modo Escuro",
+                            subtitle = "Visual confortável para a noite",
+                            icon = if (isDarkMode) Icons.Default.DarkMode else Icons.Default.LightMode,
+                            checked = isDarkMode,
+                            onCheckedChange = { viewModel.saveDarkMode(it) }
+                        )
+                        
+                        Divider(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp), thickness = 0.5.dp)
+                        
+                        SettingsToggleRow(
+                            title = "Notificações",
+                            subtitle = "Alertas de pedidos e estoque",
+                            icon = Icons.Default.NotificationsActive,
+                            checked = notifications,
+                            onCheckedChange = { viewModel.saveNotifications(it) }
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Logout ou Info
-            OutlinedButton(
+            // Logout
+            Button(
                 onClick = { 
                     navController.navigate("login") {
                         popUpTo("main") { inclusive = true }
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                )
             ) {
-                Icon(Icons.Default.ExitToApp, null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Sair da Conta")
+                Icon(Icons.Default.Logout, null)
+                Spacer(modifier = Modifier.width(12.dp))
+                Text("Desconectar Conta", fontWeight = FontWeight.SemiBold)
             }
             
             Text(
-                text = "Versão 1.0.0",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                text = "Versão do Aplicativo 1.2.0",
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 16.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             )
         }
     }
@@ -140,18 +171,26 @@ fun SettingsToggleRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Surface(
+            modifier = Modifier.size(36.dp),
+            shape = RoundedCornerShape(8.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Switch(

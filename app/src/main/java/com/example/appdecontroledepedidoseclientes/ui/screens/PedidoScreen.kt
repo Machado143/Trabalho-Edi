@@ -5,14 +5,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -49,8 +52,8 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Gestão de Pedidos", fontWeight = FontWeight.SemiBold) },
+            MediumTopAppBar(
+                title = { Text("Pedidos", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
@@ -59,26 +62,37 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
+            ExtendedFloatingActionButton(
                 onClick = { 
                     selectedCliente = null; selectedProduto = null; quantidade = ""
                     dataStr = ""; horaStr = ""
                     showDialog = true 
                 },
+                icon = { Icon(Icons.Filled.PostAdd, "Novo") },
+                text = { Text("Novo Pedido") },
                 containerColor = MaterialTheme.colorScheme.primary,
-                shape = RoundedCornerShape(16.dp)
-            ) { Icon(Icons.Filled.Add, "Novo Pedido") }
+                shape = RoundedCornerShape(20.dp)
+            )
         }
     ) { padding ->
         if (pedidos.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("Nenhum pedido realizado", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        Icons.Outlined.ReceiptLong, 
+                        null, 
+                        modifier = Modifier.size(64.dp), 
+                        tint = MaterialTheme.colorScheme.outline
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Nenhum pedido registrado", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(pedidos) { item ->
                     PedidoCard(
@@ -86,15 +100,16 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                         onDelete = { showDeleteConfirm = item.pedido }
                     )
                 }
+                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
 
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
-                title = { Text("Novo Pedido") },
+                title = { Text("Registrar Novo Pedido", fontWeight = FontWeight.Bold) },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(top = 8.dp)) {
                         // Cliente Dropdown
                         var clienteExpanded by remember { mutableStateOf(false) }
                         ExposedDropdownMenuBox(
@@ -106,9 +121,10 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                                 onValueChange = {},
                                 readOnly = true,
                                 label = { Text("Cliente") },
+                                leadingIcon = { Icon(Icons.Default.Person, null) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = clienteExpanded) },
                                 modifier = Modifier.menuAnchor().fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(16.dp)
                             )
                             ExposedDropdownMenu(
                                 expanded = clienteExpanded,
@@ -137,9 +153,10 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                                 onValueChange = {},
                                 readOnly = true,
                                 label = { Text("Produto") },
+                                leadingIcon = { Icon(Icons.Default.ShoppingCart, null) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = produtoExpanded) },
                                 modifier = Modifier.menuAnchor().fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(16.dp)
                             )
                             ExposedDropdownMenu(
                                 expanded = produtoExpanded,
@@ -147,7 +164,7 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                             ) {
                                 produtos.forEach { produto ->
                                     DropdownMenuItem(
-                                        text = { Text("${produto.nome} (R$ ${produto.valor})") },
+                                        text = { Text("${produto.nome} (R$ ${String.format("%.2f", produto.valor)})") },
                                         onClick = {
                                             selectedProduto = produto
                                             produtoExpanded = false
@@ -162,7 +179,8 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                             onValueChange = { quantidade = it }, 
                             label = { Text("Quantidade") },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(16.dp),
+                            leadingIcon = { Icon(Icons.Default.Numbers, null) }
                         )
 
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -171,15 +189,15 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                                 onValueChange = {},
                                 readOnly = true,
                                 label = { Text("Data") },
-                                leadingIcon = { Icon(Icons.Default.DateRange, null) },
+                                leadingIcon = { Icon(Icons.Default.CalendarMonth, null) },
                                 modifier = Modifier.weight(1f).clickable { showDatePicker = true },
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(16.dp),
                                 enabled = false,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     disabledTextColor = MaterialTheme.colorScheme.onSurface,
                                     disabledBorderColor = MaterialTheme.colorScheme.outline,
                                     disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                    disabledLeadingIconColor = MaterialTheme.colorScheme.primary
                                 )
                             )
                             OutlinedTextField(
@@ -187,36 +205,39 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                                 onValueChange = {},
                                 readOnly = true,
                                 label = { Text("Hora") },
-                                leadingIcon = { Icon(Icons.Default.MoreVert, null) },
+                                leadingIcon = { Icon(Icons.Default.AccessTime, null) },
                                 modifier = Modifier.weight(1f).clickable { showTimePicker = true },
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(16.dp),
                                 enabled = false,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     disabledTextColor = MaterialTheme.colorScheme.onSurface,
                                     disabledBorderColor = MaterialTheme.colorScheme.outline,
                                     disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                    disabledLeadingIconColor = MaterialTheme.colorScheme.primary
                                 )
                             )
                         }
                     }
                 },
                 confirmButton = {
-                    Button(onClick = {
-                        val qtd = quantidade.toIntOrNull() ?: 0
-                        if (selectedCliente != null && selectedProduto != null && qtd > 0 && dataStr.isNotEmpty() && horaStr.isNotEmpty()) {
-                            val ped = Pedido(
-                                clienteId = selectedCliente!!.id,
-                                produtoId = selectedProduto!!.id,
-                                quantidade = qtd,
-                                data = dataStr,
-                                hora = horaStr,
-                                valorTotal = selectedProduto!!.valor * qtd
-                            )
-                            viewModel.insert(ped)
-                            showDialog = false
-                        }
-                    }) { Text("Confirmar") }
+                    Button(
+                        onClick = {
+                            val qtd = quantidade.toIntOrNull() ?: 0
+                            if (selectedCliente != null && selectedProduto != null && qtd > 0 && dataStr.isNotEmpty() && horaStr.isNotEmpty()) {
+                                val ped = Pedido(
+                                    clienteId = selectedCliente!!.id,
+                                    produtoId = selectedProduto!!.id,
+                                    quantidade = qtd,
+                                    data = dataStr,
+                                    hora = horaStr,
+                                    valorTotal = selectedProduto!!.valor * qtd
+                                )
+                                viewModel.insert(ped)
+                                showDialog = false
+                            }
+                        },
+                        shape = RoundedCornerShape(12.dp)
+                    ) { Text("Finalizar") }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDialog = false }) { Text("Cancelar") }
@@ -267,19 +288,20 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
         if (showDeleteConfirm != null) {
             AlertDialog(
                 onDismissRequest = { showDeleteConfirm = null },
-                title = { Text("Confirmar Exclusão") },
-                text = { Text("Tem certeza que deseja cancelar este pedido?") },
+                title = { Text("Cancelar Pedido", fontWeight = FontWeight.Bold) },
+                text = { Text("Tem certeza que deseja remover este pedido do sistema?") },
                 confirmButton = {
                     Button(
                         onClick = {
                             viewModel.delete(showDeleteConfirm!!)
                             showDeleteConfirm = null
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                    ) { Text("Sim, excluir") }
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                        shape = RoundedCornerShape(12.dp)
+                    ) { Text("Confirmar") }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDeleteConfirm = null }) { Text("Não") }
+                    TextButton(onClick = { showDeleteConfirm = null }) { Text("Voltar") }
                 }
             )
         }
@@ -290,59 +312,78 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
 fun PedidoCard(pedidoComDetalhes: PedidoComDetalhes, onDelete: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
-                Column {
-                    Text(
-                        text = pedidoComDetalhes.cliente.nome,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Realizado em: ${pedidoComDetalhes.pedido.data} às ${pedidoComDetalhes.pedido.hora}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Surface(
+                        modifier = Modifier.size(40.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.tertiaryContainer
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                Icons.Default.Person, 
+                                null, 
+                                modifier = Modifier.size(20.dp),
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = pedidoComDetalhes.cliente.nome,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "${pedidoComDetalhes.pedido.data} • ${pedidoComDetalhes.pedido.hora}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, "Excluir", tint = MaterialTheme.colorScheme.error)
+                    Icon(Icons.Default.DeleteOutline, "Excluir", tint = MaterialTheme.colorScheme.error)
                 }
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
             Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
-                    modifier = Modifier.padding(12.dp),
+                    modifier = Modifier.padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = pedidoComDetalhes.produto.nome,
                             style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = "Quantidade: ${pedidoComDetalhes.pedido.quantidade} un.",
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Text(
                         text = "R$ ${String.format("%.2f", pedidoComDetalhes.pedido.valorTotal)}",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
