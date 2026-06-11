@@ -16,7 +16,10 @@ fun AppNavigation(
     pedidoViewModel: PedidoViewModel,
     settingsViewModel: SettingsViewModel
 ) {
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = "splash") {
+        composable("splash") {
+            SplashScreen(navController = navController)
+        }
         composable("login") {
             LoginScreen(
                 navController = navController,
@@ -55,4 +58,3 @@ fun AppNavigation(
         }
     }
 }
-

@@ -1,23 +1,27 @@
 package com.example.appdecontroledepedidoseclientes.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.appdecontroledepedidoseclientes.data.entity.Pedido
 import com.example.appdecontroledepedidoseclientes.data.entity.Cliente
 import com.example.appdecontroledepedidoseclientes.data.entity.Produto
+import com.example.appdecontroledepedidoseclientes.data.entity.PedidoComDetalhes
 import com.example.appdecontroledepedidoseclientes.ui.viewmodel.PedidoViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -38,36 +42,49 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
     var dataStr by remember { mutableStateOf("") }
     var horaStr by remember { mutableStateOf("") }
 
-    // Date/Time states
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
     val timePickerState = rememberTimePickerState()
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Pedidos") }) },
+        topBar = {
+            TopAppBar(
+                title = { Text("Gestão de Pedidos", fontWeight = FontWeight.SemiBold) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
+                    }
+                }
+            )
+        },
         floatingActionButton = {
-            FloatingActionButton(onClick = { 
-                selectedCliente = null; selectedProduto = null; quantidade = ""
-                dataStr = ""; horaStr = ""
-                showDialog = true 
-            }) { Icon(Icons.Filled.Add, "Adicionar") }
+            FloatingActionButton(
+                onClick = { 
+                    selectedCliente = null; selectedProduto = null; quantidade = ""
+                    dataStr = ""; horaStr = ""
+                    showDialog = true 
+                },
+                containerColor = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(16.dp)
+            ) { Icon(Icons.Filled.Add, "Novo Pedido") }
         }
     ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding).padding(16.dp)) {
-            items(pedidos) { item ->
-                Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                    Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Cliente: ${item.cliente.nome}", style = MaterialTheme.typography.titleSmall)
-                            Text("Produto: ${item.produto.nome} (x${item.pedido.quantidade})")
-                            Text("Data: ${item.pedido.data} ${item.pedido.hora}")
-                            Text("Total: R$ ${String.format("%.2f", item.pedido.valorTotal)}", color = MaterialTheme.colorScheme.primary)
-                        }
-                        IconButton(onClick = { showDeleteConfirm = item.pedido }) {
-                            Icon(Icons.Filled.Delete, "Excluir")
-                        }
-                    }
+        if (pedidos.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Text("Nenhum pedido realizado", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(pedidos) { item ->
+                    PedidoCard(
+                        pedidoComDetalhes = item,
+                        onDelete = { showDeleteConfirm = item.pedido }
+                    )
                 }
             }
         }
@@ -77,8 +94,8 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                 onDismissRequest = { showDialog = false },
                 title = { Text("Novo Pedido") },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        // Dropdown Cliente
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        // Cliente Dropdown
                         var clienteExpanded by remember { mutableStateOf(false) }
                         ExposedDropdownMenuBox(
                             expanded = clienteExpanded,
@@ -88,9 +105,10 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                                 value = selectedCliente?.nome ?: "",
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("Selecionar Cliente") },
+                                label = { Text("Cliente") },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = clienteExpanded) },
-                                modifier = Modifier.menuAnchor().fillMaxWidth()
+                                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp)
                             )
                             ExposedDropdownMenu(
                                 expanded = clienteExpanded,
@@ -108,7 +126,7 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                             }
                         }
 
-                        // Dropdown Produto
+                        // Produto Dropdown
                         var produtoExpanded by remember { mutableStateOf(false) }
                         ExposedDropdownMenuBox(
                             expanded = produtoExpanded,
@@ -118,9 +136,10 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                                 value = selectedProduto?.nome ?: "",
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("Selecionar Produto") },
+                                label = { Text("Produto") },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = produtoExpanded) },
-                                modifier = Modifier.menuAnchor().fillMaxWidth()
+                                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp)
                             )
                             ExposedDropdownMenu(
                                 expanded = produtoExpanded,
@@ -128,7 +147,7 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                             ) {
                                 produtos.forEach { produto ->
                                     DropdownMenuItem(
-                                        text = { Text(produto.nome) },
+                                        text = { Text("${produto.nome} (R$ ${produto.valor})") },
                                         onClick = {
                                             selectedProduto = produto
                                             produtoExpanded = false
@@ -142,28 +161,44 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                             value = quantidade, 
                             onValueChange = { quantidade = it }, 
                             label = { Text("Quantidade") },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
                         )
 
-                        // Date Picker Trigger
-                        OutlinedTextField(
-                            value = dataStr,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Data") },
-                            trailingIcon = { IconButton(onClick = { showDatePicker = true }) { Icon(Icons.Default.DateRange, null) } },
-                            modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true }
-                        )
-
-                        // Time Picker Trigger
-                        OutlinedTextField(
-                            value = horaStr,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Hora") },
-                            trailingIcon = { IconButton(onClick = { showTimePicker = true }) { Icon(Icons.Default.MoreVert, null) } },
-                            modifier = Modifier.fillMaxWidth().clickable { showTimePicker = true }
-                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = dataStr,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Data") },
+                                leadingIcon = { Icon(Icons.Default.DateRange, null) },
+                                modifier = Modifier.weight(1f).clickable { showDatePicker = true },
+                                shape = RoundedCornerShape(12.dp),
+                                enabled = false,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                    disabledBorderColor = MaterialTheme.colorScheme.outline,
+                                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            )
+                            OutlinedTextField(
+                                value = horaStr,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Hora") },
+                                leadingIcon = { Icon(Icons.Default.MoreVert, null) },
+                                modifier = Modifier.weight(1f).clickable { showTimePicker = true },
+                                shape = RoundedCornerShape(12.dp),
+                                enabled = false,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                    disabledBorderColor = MaterialTheme.colorScheme.outline,
+                                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            )
+                        }
                     }
                 },
                 confirmButton = {
@@ -181,7 +216,7 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                             viewModel.insert(ped)
                             showDialog = false
                         }
-                    }) { Text("Salvar") }
+                    }) { Text("Confirmar") }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDialog = false }) { Text("Cancelar") }
@@ -189,7 +224,6 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
             )
         }
 
-        // DatePickerDialog
         if (showDatePicker) {
             DatePickerDialog(
                 onDismissRequest = { showDatePicker = false },
@@ -197,6 +231,7 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                     TextButton(onClick = {
                         val date = datePickerState.selectedDateMillis?.let {
                             val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                            sdf.timeZone = TimeZone.getTimeZone("UTC")
                             sdf.format(Date(it))
                         } ?: ""
                         dataStr = date
@@ -211,7 +246,6 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
             }
         }
 
-        // TimePickerDialog
         if (showTimePicker) {
             AlertDialog(
                 onDismissRequest = { showTimePicker = false },
@@ -234,17 +268,85 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
             AlertDialog(
                 onDismissRequest = { showDeleteConfirm = null },
                 title = { Text("Confirmar Exclusão") },
-                text = { Text("Deseja realmente excluir este pedido?") },
+                text = { Text("Tem certeza que deseja cancelar este pedido?") },
                 confirmButton = {
-                    Button(onClick = {
-                        viewModel.delete(showDeleteConfirm!!)
-                        showDeleteConfirm = null
-                    }) { Text("Sim") }
+                    Button(
+                        onClick = {
+                            viewModel.delete(showDeleteConfirm!!)
+                            showDeleteConfirm = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) { Text("Sim, excluir") }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteConfirm = null }) { Text("Não") }
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun PedidoCard(pedidoComDetalhes: PedidoComDetalhes, onDelete: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = pedidoComDetalhes.cliente.nome,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Realizado em: ${pedidoComDetalhes.pedido.data} às ${pedidoComDetalhes.pedido.hora}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, "Excluir", tint = MaterialTheme.colorScheme.error)
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = pedidoComDetalhes.produto.nome,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = "Quantidade: ${pedidoComDetalhes.pedido.quantidade} un.",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    Text(
+                        text = "R$ ${String.format("%.2f", pedidoComDetalhes.pedido.valorTotal)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
     }
 }
