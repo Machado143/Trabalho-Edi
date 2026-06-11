@@ -15,23 +15,25 @@ class AppViewModelFactory(
     private val usuarioDao: UsuarioDao,
     private val settingsDataStore: SettingsDataStore
 ) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
-            return LoginViewModel(usuarioDao) as T
+        return when {
+            modelClass.isAssignableFrom(LoginViewModel::class.java) -> {
+                LoginViewModel(usuarioDao) as T
+            }
+            modelClass.isAssignableFrom(ClienteViewModel::class.java) -> {
+                ClienteViewModel(clienteRepository) as T
+            }
+            modelClass.isAssignableFrom(ProdutoViewModel::class.java) -> {
+                ProdutoViewModel(produtoRepository) as T
+            }
+            modelClass.isAssignableFrom(PedidoViewModel::class.java) -> {
+                PedidoViewModel(pedidoRepository, clienteRepository, produtoRepository) as T
+            }
+            modelClass.isAssignableFrom(SettingsViewModel::class.java) -> {
+                SettingsViewModel(settingsDataStore) as T
+            }
+            else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
-        if (modelClass.isAssignableFrom(ClienteViewModel::class.java)) {
-            return ClienteViewModel(clienteRepository) as T
-        }
-        if (modelClass.isAssignableFrom(ProdutoViewModel::class.java)) {
-            return ProdutoViewModel(produtoRepository) as T
-        }
-        if (modelClass.isAssignableFrom(PedidoViewModel::class.java)) {
-            return PedidoViewModel(pedidoRepository, clienteRepository, produtoRepository) as T
-        }
-        if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
-            return SettingsViewModel(settingsDataStore) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
-

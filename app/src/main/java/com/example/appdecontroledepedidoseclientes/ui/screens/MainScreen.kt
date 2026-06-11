@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -105,7 +106,7 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
                 item {
                     MenuCard(
                         "Pedidos", 
-                        Icons.Default.ReceiptLong, 
+                        Icons.AutoMirrored.Filled.ReceiptLong, 
                         "Histórico de vendas",
                         MaterialTheme.colorScheme.tertiaryContainer,
                         MaterialTheme.colorScheme.onTertiaryContainer

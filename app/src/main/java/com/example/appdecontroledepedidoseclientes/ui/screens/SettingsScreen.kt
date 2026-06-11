@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -36,7 +38,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
                 title = { Text("Configurações", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
                     }
                 }
             )
@@ -116,7 +118,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
                             onCheckedChange = { viewModel.saveDarkMode(it) }
                         )
                         
-                        Divider(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp), thickness = 0.5.dp)
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp), thickness = 0.5.dp)
                         
                         SettingsToggleRow(
                             title = "Notificações",
@@ -145,7 +147,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
                     contentColor = MaterialTheme.colorScheme.onErrorContainer
                 )
             ) {
-                Icon(Icons.Default.Logout, null)
+                Icon(Icons.AutoMirrored.Filled.Logout, null)
                 Spacer(modifier = Modifier.width(12.dp))
                 Text("Desconectar Conta", fontWeight = FontWeight.SemiBold)
             }

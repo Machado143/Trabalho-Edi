@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -56,7 +58,7 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                 title = { Text("Pedidos", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
                     }
                 }
             )
@@ -79,7 +81,7 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        Icons.Outlined.ReceiptLong, 
+                        Icons.AutoMirrored.Outlined.ReceiptLong, 
                         null, 
                         modifier = Modifier.size(64.dp), 
                         tint = MaterialTheme.colorScheme.outline
@@ -123,7 +125,7 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                                 label = { Text("Cliente") },
                                 leadingIcon = { Icon(Icons.Default.Person, null) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = clienteExpanded) },
-                                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true).fillMaxWidth(),
                                 shape = RoundedCornerShape(16.dp)
                             )
                             ExposedDropdownMenu(
@@ -155,7 +157,7 @@ fun PedidoScreen(navController: NavController, viewModel: PedidoViewModel) {
                                 label = { Text("Produto") },
                                 leadingIcon = { Icon(Icons.Default.ShoppingCart, null) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = produtoExpanded) },
-                                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true).fillMaxWidth(),
                                 shape = RoundedCornerShape(16.dp)
                             )
                             ExposedDropdownMenu(
