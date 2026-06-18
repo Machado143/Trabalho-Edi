@@ -343,7 +343,7 @@ fun PedidoCard(pedidoComDetalhes: PedidoComDetalhes, onDelete: () -> Unit, onSta
             Surface(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                 Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(text = pedidoComDetalhes.produto.nome, fontWeight = FontWeight.Bold)
+                        Text(text = pedidoComDetalhes.produto?.nome ?: "", fontWeight = FontWeight.Bold)
                         Text(text = stringResource(R.string.order_quantity_label, pedidoComDetalhes.pedido.quantidade ?: 0), style = MaterialTheme.typography.bodySmall)
                     }
                     Text(text = stringResource(R.string.currency_format, pedidoComDetalhes.pedido.valorTotal), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)

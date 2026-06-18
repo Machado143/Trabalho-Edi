@@ -2,6 +2,7 @@ package com.example.appdecontroledepedidoseclientes.data.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 /**
@@ -11,6 +12,7 @@ import androidx.room.PrimaryKey
  */
 @Entity(
     tableName = "itens_pedido",
+    indices = [Index(value = ["pedidoId"])],
     foreignKeys = [
         ForeignKey(
             entity = Pedido::class,

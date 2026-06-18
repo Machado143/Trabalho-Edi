@@ -16,6 +16,6 @@ data class PedidoComDetalhes(
         parentColumn = "produtoId",
         entityColumn = "id"
     )
-    val produto: Produto
+    val produto: Produto?
 )
 

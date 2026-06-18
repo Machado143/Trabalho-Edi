@@ -12,13 +12,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [Cliente::class, Produto::class, Pedido::class, Usuario::class], version = 1, exportSchema = false)
+@Database(entities = [Cliente::class, Produto::class, Pedido::class, Usuario::class, ItemPedido::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun clienteDao(): ClienteDao
     abstract fun produtoDao(): ProdutoDao
     abstract fun pedidoDao(): PedidoDao
     abstract fun usuarioDao(): UsuarioDao
-    // TODO: ItemPedidoDao será adicionado na v2 para suportar múltiplos produtos por pedido
+    abstract fun itemPedidoDao(): ItemPedidoDao
 
     companion object {
         @Volatile

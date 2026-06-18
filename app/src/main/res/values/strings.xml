@@ -8,7 +8,7 @@
     <string name="label_password">Senha</string>
     <string name="error_empty_fields">Preencha todos os campos</string>
     <string name="btn_access">Acessar Sistema</string>
-    <string name="login_tip">Dica: admin / 12345</string>
+    <string name="login_tip">Dica: machado / 2009</string>
 
     <!-- Main Screen -->
     <string name="dashboard_title">Dashboard</string>
@@ -47,7 +47,7 @@
     <string name="btn_cancel">Cancelar</string>
     <string name="content_desc_edit">Editar</string>
     <string name="content_desc_delete">Excluir</string>
-    <string name="search_hint">Pesquisar...</string>
+    <string name="search_hint">Pesquisar…</string>
     <string name="delete_confirm_title">Confirmar Exclusão</string>
     <string name="delete_confirm_msg">Tem certeza que deseja excluir este item?</string>
     <string name="error_field_required">Campo obrigatório</string>

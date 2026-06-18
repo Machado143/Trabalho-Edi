@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.example.appdecontroledepedidoseclientes.ui.screens
 
 import androidx.compose.foundation.background
@@ -8,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -114,7 +116,7 @@ fun MainScreen(
                         title = stringResource(R.string.menu_settings),
                         value = stringResource(R.string.currency_format, faturamento ?: 0.0),
                         subtitle = stringResource(R.string.metric_total_revenue),
-                        icon = Icons.Default.TrendingUp,
+                        icon = Icons.AutoMirrored.Filled.TrendingUp,
                         color = MaterialTheme.colorScheme.surfaceVariant,
                         onClick = { navController.navigate("pedidos") }
                     )
