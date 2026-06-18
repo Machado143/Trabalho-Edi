@@ -2,37 +2,38 @@ package com.example.appdecontroledepedidoseclientes.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Modern Blue/Slate Palette
-val Primary = Color(0xFF0061A4)
-val OnPrimary = Color(0xFFFFFFFF)
-val PrimaryContainer = Color(0xFFD1E4FF)
-val OnPrimaryContainer = Color(0xFF001D36)
+// Vasco da Gama Palette
+// Vasco Light
+val Primary = Color(0xFF1A1A1A)           // Preto Vasco
+val OnPrimary = Color(0xFFFFFFFF)          // Branco
+val PrimaryContainer = Color(0xFF3A3A3A)   // Preto suave
+val OnPrimaryContainer = Color(0xFFFFFFFF) // Branco
 
-val Secondary = Color(0xFF535F70)
+val Secondary = Color(0xFF4A4A4A)          // Cinza escuro
 val OnSecondary = Color(0xFFFFFFFF)
-val SecondaryContainer = Color(0xFFD7E3F7)
-val OnSecondaryContainer = Color(0xFF101C2B)
+val SecondaryContainer = Color(0xFFE8E8E8) // Cinza claro
+val OnSecondaryContainer = Color(0xFF1A1A1A)
 
-val Tertiary = Color(0xFF6B5778)
-val OnTertiary = Color(0xFFFFFFFF)
-val TertiaryContainer = Color(0xFFF2DAFF)
-val OnTertiaryContainer = Color(0xFF251431)
+val Tertiary = Color(0xFFC9A84C)           // Dourado (escudo do Vasco)
+val OnTertiary = Color(0xFF000000)
+val TertiaryContainer = Color(0xFFF5E6C0)  // Dourado claro
+val OnTertiaryContainer = Color(0xFF3A2800)
 
 val Error = Color(0xFFBA1A1A)
 val OnError = Color(0xFFFFFFFF)
 
-val Background = Color(0xFFFDFBFF)
-val OnBackground = Color(0xFF1A1C1E)
-val Surface = Color(0xFFFDFBFF)
-val OnSurface = Color(0xFF1A1C1E)
+val Background = Color(0xFFF8F8F8)         // Branco levemente acinzentado
+val OnBackground = Color(0xFF1A1A1A)
+val Surface = Color(0xFFFFFFFF)
+val OnSurface = Color(0xFF1A1A1A)
 
-// Dark Mode Palette
-val PrimaryDark = Color(0xFF9ECAFF)
-val OnPrimaryDark = Color(0xFF003258)
-val PrimaryContainerDark = Color(0xFF00497D)
-val OnPrimaryContainerDark = Color(0xFFD1E4FF)
+// Vasco Dark
+val PrimaryDark = Color(0xFFE0E0E0)        // Branco acinzentado no escuro
+val OnPrimaryDark = Color(0xFF000000)
+val PrimaryContainerDark = Color(0xFF2A2A2A)
+val OnPrimaryContainerDark = Color(0xFFE0E0E0)
 
-val BackgroundDark = Color(0xFF1A1C1E)
-val OnBackgroundDark = Color(0xFFE2E2E6)
-val SurfaceDark = Color(0xFF1A1C1E)
-val OnSurfaceDark = Color(0xFFE2E2E6)
+val BackgroundDark = Color(0xFF121212)
+val OnBackgroundDark = Color(0xFFE8E8E8)
+val SurfaceDark = Color(0xFF1E1E1E)
+val OnSurfaceDark = Color(0xFFE8E8E8)

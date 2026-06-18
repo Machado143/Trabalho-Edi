@@ -14,6 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontFamily
+import com.example.appdecontroledepedidoseclientes.ui.components.VascoBadge
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -100,21 +103,8 @@ fun LoginScreen(
                 verticalArrangement = Arrangement.Center           // Centraliza na vertical.
             ) {
                 // Surface: Uma superfície elevada que desenha o ícone do sistema.
-                Surface(
-                    modifier = Modifier.size(90.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    tonalElevation = 8.dp
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Outlined.ShoppingBag,
-                            contentDescription = null,
-                            modifier = Modifier.size(45.dp),
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
+                // Reusable Vasco badge (smaller)
+                VascoBadge(badgeSize = 80.dp, vTextSize = 36.sp)
 
                 // Spacer: Cria um espaço vazio entre os componentes.
                 Spacer(modifier = Modifier.height(32.dp))

@@ -6,10 +6,12 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.sp
+import com.example.appdecontroledepedidoseclientes.ui.components.VascoBadge
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -72,20 +74,8 @@ fun SplashScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.scale(scale.value) // Aplica o valor da animacao aqui
         ) {
-            // Desenha o icone da sacola de compras dentro de um quadrado arredondado
-            Surface(
-                modifier = Modifier.size(120.dp),
-                shape = RoundedCornerShape(28.dp),
-                color = MaterialTheme.colorScheme.onPrimary,
-                shadowElevation = 8.dp
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ShoppingCart,
-                    contentDescription = null,
-                    modifier = Modifier.padding(24.dp).size(64.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
+            // Composable reutilizável do escudo/bandeira do Vasco
+            VascoBadge(badgeSize = 120.dp, vTextSize = 52.sp)
             Spacer(modifier = Modifier.height(24.dp))
             // Nome do aplicativo
             Text(

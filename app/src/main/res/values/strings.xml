@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">App de Controle de Pedidos e Clientes</string>
-    
+    <string name="app_name">Vasco Manager</string>
+
     <!-- Login Screen -->
-    <string name="login_title">Controle de Vendas</string>
-    <string name="login_subtitle">Gerencie seus pedidos com facilidade</string>
+    <string name="login_title">Vasco Manager</string>
+    <string name="login_subtitle">Gerencie com a garra do Gigante da Colina</string>
     <string name="label_username">Usuário</string>
     <string name="label_password">Senha</string>
     <string name="error_empty_fields">Preencha todos os campos</string>
@@ -93,8 +93,8 @@
     <string name="label_stock_qty">Estoque: %1$d</string>
 
     <!-- Splash Screen -->
-    <string name="splash_title">OrderManager</string>
-    <string name="splash_subtitle">Controle total na sua mão</string>
+    <string name="splash_title">Vasco Manager</string>
+    <string name="splash_subtitle">Força, Raça e Controle Total</string>
 
     <!-- Settings Screen -->
     <string name="title_settings">Configurações</string>
@@ -106,5 +106,5 @@
     <string name="setting_notifications">Notificações</string>
     <string name="setting_notifications_sub">Alertas de pedidos e estoque</string>
     <string name="btn_logout">Desconectar Conta</string>
-    <string name="app_version">Versão do Aplicativo 1.2.0</string>
+    <string name="app_version">Versão 1.0 • Gabriel Machado Martins</string>
 </resources>
