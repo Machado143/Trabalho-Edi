@@ -9,5 +9,8 @@ class PedidoRepository(private val dao: PedidoDao) {
     suspend fun update(pedido: Pedido) = dao.update(pedido)
     suspend fun delete(pedido: Pedido) = dao.delete(pedido)
     suspend fun getById(id: Int) = dao.getById(id)
+    
+    fun getPedidosByCliente(clienteId: Int) = dao.getPedidosByCliente(clienteId)
+    fun getCountToday(today: String) = dao.getCountToday(today)
+    fun getRevenueMonth(monthYear: String) = dao.getRevenueMonth(monthYear)
 }
-

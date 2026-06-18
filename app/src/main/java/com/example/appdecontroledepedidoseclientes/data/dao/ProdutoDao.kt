@@ -20,5 +20,7 @@ interface ProdutoDao {
 
     @Query("SELECT * FROM produto WHERE id = :id")
     suspend fun getById(id: Int): Produto?
-}
 
+    @Query("SELECT COUNT(*) FROM produto")
+    fun getCount(): Flow<Int>
+}

@@ -35,10 +35,12 @@ class MainActivity : ComponentActivity() {
         val factory = AppViewModelFactory(clienteRepo, produtoRepo, pedidoRepo, db.usuarioDao(), settingsDataStore)
         
         val loginViewModel = ViewModelProvider(this, factory)[LoginViewModel::class.java]
+        val registerViewModel = ViewModelProvider(this, factory)[RegisterViewModel::class.java]
         val clienteViewModel = ViewModelProvider(this, factory)[ClienteViewModel::class.java]
         val produtoViewModel = ViewModelProvider(this, factory)[ProdutoViewModel::class.java]
         val pedidoViewModel = ViewModelProvider(this, factory)[PedidoViewModel::class.java]
         val settingsViewModel = ViewModelProvider(this, factory)[SettingsViewModel::class.java]
+        val mainViewModel = ViewModelProvider(this, factory)[MainViewModel::class.java]
         
         enableEdgeToEdge()
         setContent {
@@ -50,10 +52,12 @@ class MainActivity : ComponentActivity() {
                     AppNavigation(
                         navController = navController,
                         loginViewModel = loginViewModel,
+                        registerViewModel = registerViewModel,
                         clienteViewModel = clienteViewModel,
                         produtoViewModel = produtoViewModel,
                         pedidoViewModel = pedidoViewModel,
-                        settingsViewModel = settingsViewModel
+                        settingsViewModel = settingsViewModel,
+                        mainViewModel = mainViewModel
                     )
                 }
             }

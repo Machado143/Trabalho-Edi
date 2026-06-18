@@ -22,5 +22,14 @@ interface PedidoDao {
 
     @Query("SELECT * FROM pedido WHERE id = :id")
     suspend fun getById(id: Int): Pedido?
-}
 
+    @Transaction
+    @Query("SELECT * FROM pedido WHERE clienteId = :clienteId ORDER BY data DESC, hora DESC")
+    fun getPedidosByCliente(clienteId: Int): Flow<List<PedidoComDetalhes>>
+
+    @Query("SELECT COUNT(*) FROM pedido WHERE data = :today")
+    fun getCountToday(today: String): Flow<Int>
+
+    @Query("SELECT SUM(valorTotal) FROM pedido WHERE data LIKE :monthYear AND status != 'Cancelado'")
+    fun getRevenueMonth(monthYear: String): Flow<Double?>
+}

@@ -1,5 +1,7 @@
 package com.example.appdecontroledepedidoseclientes.ui.screens
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,255 +26,266 @@ import androidx.navigation.NavController
 import com.example.appdecontroledepedidoseclientes.R
 import com.example.appdecontroledepedidoseclientes.data.entity.Cliente
 import com.example.appdecontroledepedidoseclientes.ui.viewmodel.ClienteViewModel
+import kotlinx.coroutines.launch
 
 /**
- * --- O QUE É ESTA TELA? ---
- * Esta é a tela de listagem e cadastro de Clientes. 
- * Ela permite ver quem são os clientes, adicionar novos, editar ou excluir.
+ * --- TELA DE CLIENTES FINALIZADA ---
+ * Melhorias implementadas: Busca, Validação, Confirmação, Desfazer, Animações,
+ * Ordenação (A-Z/Z-A) e Swipe to Delete.
  */
-
-// @Composable: É a peça fundamental do Jetpack Compose. 
-// Avisa que esta função vai transformar dados em elementos visuais (texto, botões, imagens).
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClienteScreen(
-    navController: NavController, // navController: Ferramenta para mudar de tela.
-    viewModel: ClienteViewModel   // viewModel: Onde fica a lógica e o acesso aos dados dos clientes.
+    navController: NavController,
+    viewModel: ClienteViewModel
 ) {
-    // collectAsState(): "Escuta" a lista de clientes do banco de dados. 
-    // Se um cliente for adicionado ou removido, a tela atualiza na hora.
     val clientes by viewModel.clientes.collectAsState()
     
-    // remember { mutableStateOf(...) }: Cria variáveis que o Android "lembra" mesmo se a tela girar ou atualizar.
-    var showDialog by remember { mutableStateOf(false) } // Controla se o formulário (pop-up) está aberto.
-    var editingCliente by remember { mutableStateOf<Cliente?>(null) } // Guarda qual cliente estamos editando agora.
-    
-    // Campos que guardam o que o usuário digita no formulário.
+    // Estados para Busca e Ordenação (UX 3 e 12)
+    var searchQuery by remember { mutableStateOf("") }
+    var isSearchActive by remember { mutableStateOf(false) }
+    var isAscending by remember { mutableStateOf(true) }
+
+    // Filtragem e Ordenação em tempo real (UX 3 e 12)
+    val filteredClientes = remember(clientes, searchQuery, isAscending) {
+        val filtered = clientes.filter { 
+            it.nome.contains(searchQuery, ignoreCase = true) || 
+            it.cidade.contains(searchQuery, ignoreCase = true) 
+        }
+        if (isAscending) filtered.sortedBy { it.nome } else filtered.sortedByDescending { it.nome }
+    }
+
+    // Estados do Formulário e Validação
+    var showDialog by remember { mutableStateOf(false) }
+    var editingCliente by remember { mutableStateOf<Cliente?>(null) }
     var nome by remember { mutableStateOf("") }
     var telefone by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var cidade by remember { mutableStateOf("") }
+    var nomeError by remember { mutableStateOf(false) }
+    var telefoneError by remember { mutableStateOf(false) }
 
-    // Scaffold: Define a estrutura padrão da tela: barra superior, conteúdo e botão flutuante.
+    // Estado para Confirmação de Exclusão
+    var clienteParaExcluir by remember { mutableStateOf<Cliente?>(null) }
+
+    // Snackbar para o "Desfazer"
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            // MediumTopAppBar: Barra de título média, comum em telas de lista.
-            MediumTopAppBar(
-                title = { Text(stringResource(R.string.title_clients), fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    // Botão de voltar (setinha).
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_desc_back))
+            if (isSearchActive) {
+                TopAppBar(
+                    title = {
+                        TextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = { Text(stringResource(R.string.search_hint)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            colors = TextFieldDefaults.colors()
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { isSearchActive = false; searchQuery = "" }) {
+                            Icon(Icons.Default.Close, null)
+                        }
                     }
-                },
-                actions = {
-                    // Ícone de lupa (apenas visual por enquanto).
-                    IconButton(onClick = { /* Implementar busca futuramente */ }) {
-                        Icon(Icons.Default.Search, contentDescription = stringResource(R.string.content_desc_search))
+                )
+            } else {
+                MediumTopAppBar(
+                    title = { Text(stringResource(R.string.title_clients), fontWeight = FontWeight.Bold) },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_desc_back))
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { isSearchActive = true }) {
+                            Icon(Icons.Default.Search, contentDescription = stringResource(R.string.content_desc_search))
+                        }
+                        // Botão de Ordenação (UX 12)
+                        IconButton(onClick = { isAscending = !isAscending }) {
+                            Icon(
+                                imageVector = if (isAscending) Icons.Default.SortByAlpha else Icons.Default.Sort,
+                                contentDescription = "Ordenar"
+                            )
+                        }
                     }
-                }
-            )
+                )
+            }
         },
         floatingActionButton = {
-            // ExtendedFloatingActionButton: Aquele botão redondo "flutuante" no canto da tela.
             ExtendedFloatingActionButton(
                 onClick = { 
-                    editingCliente = null // Dizemos que é um "novo" cliente, não uma edição.
-                    nome = ""; telefone = ""; email = ""; cidade = "" // Limpa os campos.
-                    showDialog = true // Abre o pop-up de cadastro.
+                    editingCliente = null; nome = ""; telefone = ""; email = ""; cidade = ""
+                    nomeError = false; telefoneError = false; showDialog = true 
                 },
                 icon = { Icon(Icons.Filled.PersonAdd, stringResource(R.string.content_desc_add)) },
                 text = { Text(stringResource(R.string.btn_new_client)) },
-                containerColor = MaterialTheme.colorScheme.primary, // Cor principal do app.
+                containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(20.dp)
             )
         }
-    ) { padding -> // padding: Garante que a lista não fique embaixo da barra superior.
-        
-        // Estrutura condicional (IF): Se a lista estiver vazia, mostramos um aviso.
-        if (clientes.isEmpty()) {
+    ) { padding ->
+        if (filteredClientes.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.PeopleOutline, 
-                        null, 
-                        modifier = Modifier.size(64.dp), 
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(stringResource(R.string.empty_clients), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                Text(if (searchQuery.isEmpty()) stringResource(R.string.empty_clients) else "Nenhum resultado encontrado")
             }
         } else {
-            // LazyColumn: É a versão moderna do ListView. 
-            // Ela é "Preguiçosa" (Lazy) porque só carrega os itens que o usuário está vendo, economizando memória.
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp) // Espaço entre os cartões.
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // items(): Percorre a lista de clientes e cria um componente visual para cada um.
-                items(clientes) { cliente ->
-                    ClienteCard(
-                        cliente = cliente,
-                        onEdit = {
-                            // Quando clica em editar, preenchemos o formulário com os dados atuais do cliente.
-                            editingCliente = cliente
-                            nome = cliente.nome
-                            telefone = cliente.telefone
-                            email = cliente.email
-                            cidade = cliente.cidade
-                            showDialog = true
-                        },
-                        onDelete = { viewModel.delete(cliente) } // Chama a função de apagar no ViewModel.
+                items(filteredClientes, key = { it.id }) { cliente ->
+                    // Swipe to Delete (Melhoria Técnica 11)
+                    val dismissState = rememberSwipeToDismissBoxState(
+                        confirmValueChange = {
+                            if (it == SwipeToDismissBoxValue.EndToStart) {
+                                clienteParaExcluir = cliente
+                                true
+                            } else false
+                        }
                     )
+
+                    SwipeToDismissBox(
+                        state = dismissState,
+                        enableDismissFromStartToEnd = false,
+                        backgroundContent = {
+                            val color = if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) Color.Red else Color.Transparent
+                            Box(
+                                Modifier.fillMaxSize().clip(RoundedCornerShape(24.dp)).background(color).padding(horizontal = 20.dp),
+                                contentAlignment = Alignment.CenterEnd
+                            ) {
+                                Icon(Icons.Default.Delete, contentDescription = null, tint = Color.White)
+                            }
+                        }
+                    ) {
+                        AnimatedVisibility(
+                            visible = true,
+                            enter = fadeIn(animationSpec = tween(500)) + slideInVertically(animationSpec = tween(500)) { it / 2 }
+                        ) {
+                            ClienteCard(
+                                cliente = cliente,
+                                onEdit = {
+                                    editingCliente = cliente; nome = cliente.nome; telefone = cliente.telefone
+                                    email = cliente.email; cidade = cliente.cidade
+                                    nomeError = false; telefoneError = false; showDialog = true
+                                },
+                                onDelete = { clienteParaExcluir = cliente },
+                                onClick = { navController.navigate("cliente_detalhe/${cliente.id}") }
+                            )
+                        }
+                    }
                 }
-                // Spacer extra no final para o botão flutuante não tampar o último item da lista.
                 item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
 
-        // AlertDialog: É o pop-up (caixa de diálogo) para preencher os dados.
-        if (showDialog) {
+        // Dialog de Confirmação de Exclusão
+        if (clienteParaExcluir != null) {
             AlertDialog(
-                onDismissRequest = { showDialog = false }, // Fecha o pop-up se clicar fora.
-                title = { Text(if (editingCliente == null) stringResource(R.string.dialog_new_client) else stringResource(R.string.dialog_edit_client), fontWeight = FontWeight.Bold) },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(top = 8.dp)) {
-                        // OutlinedTextField: Caixas de entrada de texto.
-                        OutlinedTextField(
-                            value = nome, onValueChange = { nome = it }, 
-                            label = { Text(stringResource(R.string.label_full_name)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            leadingIcon = { Icon(Icons.Default.Person, null) }
-                        )
-                        OutlinedTextField(
-                            value = telefone, onValueChange = { telefone = it }, 
-                            label = { Text(stringResource(R.string.label_phone)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            leadingIcon = { Icon(Icons.Default.Phone, null) }
-                        )
-                        OutlinedTextField(
-                            value = email, onValueChange = { email = it }, 
-                            label = { Text(stringResource(R.string.label_email)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            leadingIcon = { Icon(Icons.Default.Email, null) }
-                        )
-                        OutlinedTextField(
-                            value = cidade, onValueChange = { cidade = it }, 
-                            label = { Text(stringResource(R.string.label_city)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            leadingIcon = { Icon(Icons.Default.LocationCity, null) }
-                        )
-                    }
-                },
+                onDismissRequest = { clienteParaExcluir = null },
+                title = { Text(stringResource(R.string.delete_confirm_title)) },
+                text = { Text(stringResource(R.string.delete_confirm_msg)) },
                 confirmButton = {
                     Button(
                         onClick = {
-                            // Cria um novo objeto Cliente com o que foi digitado.
-                            val c = Cliente(
-                                id = editingCliente?.id ?: 0, // Se for novo é 0 (o banco gera), se for edição mantém o original.
-                                nome = nome, telefone = telefone, email = email, cidade = cidade
-                            )
-                            // Salva ou Atualiza no banco de dados.
-                            if (editingCliente == null) viewModel.insert(c) else viewModel.update(c)
-                            showDialog = false // Fecha o pop-up.
+                            val target = clienteParaExcluir!!
+                            viewModel.delete(target)
+                            clienteParaExcluir = null
+                            scope.launch {
+                                val result = snackbarHostState.showSnackbar("Cliente removido", "Desfazer", duration = SnackbarDuration.Short)
+                                if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete()
+                            }
                         },
-                        shape = RoundedCornerShape(12.dp)
-                    ) { Text(stringResource(R.string.btn_save)) }
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) { Text(stringResource(R.string.btn_confirm)) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDialog = false }) { Text(stringResource(R.string.btn_cancel)) }
+                    TextButton(onClick = { clienteParaExcluir = null }) { Text(stringResource(R.string.btn_cancel)) }
+                }
+            )
+        }
+
+        // Dialog de Cadastro com Validação
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text(if (editingCliente == null) stringResource(R.string.dialog_new_client) else stringResource(R.string.dialog_edit_client)) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedTextField(
+                            value = nome, onValueChange = { nome = it; nomeError = false }, 
+                            label = { Text(stringResource(R.string.label_full_name)) },
+                            isError = nomeError,
+                            supportingText = { if (nomeError) Text(stringResource(R.string.error_field_required)) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(
+                            value = telefone, onValueChange = { telefone = it; telefoneError = false }, 
+                            label = { Text(stringResource(R.string.label_phone)) },
+                            isError = telefoneError,
+                            supportingText = { if (telefoneError) Text(stringResource(R.string.error_field_required)) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text(stringResource(R.string.label_email)) }, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(value = cidade, onValueChange = { cidade = it }, label = { Text(stringResource(R.string.label_city)) }, modifier = Modifier.fillMaxWidth())
+                    }
+                },
+                confirmButton = {
+                    Button(onClick = {
+                        if (nome.isBlank()) nomeError = true
+                        if (telefone.isBlank()) telefoneError = true
+                        if (!nomeError && !telefoneError) {
+                            val c = Cliente(editingCliente?.id ?: 0, nome, telefone, email, cidade)
+                            if (editingCliente == null) viewModel.insert(c) else viewModel.update(c)
+                            showDialog = false
+                        }
+                    }) { Text(stringResource(R.string.btn_save)) }
                 }
             )
         }
     }
 }
 
-/**
- * --- O QUE É ISTO? ---
- * Componente que desenha o "Cartão" de cada cliente na lista.
- */
 @Composable
-fun ClienteCard(cliente: Cliente, onEdit: () -> Unit, onDelete: () -> Unit) {
-    // Card: Cria o retângulo visual com bordas e cor.
+fun ClienteCard(cliente: Cliente, onEdit: () -> Unit, onDelete: () -> Unit, onClick: () -> Unit) {
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
-        // Row: Coloca os itens um ao lado do outro (Avatar, Nome e Botões).
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Surface: Cria um quadrado arredondado para ser o "Avatar" do cliente.
-            Surface(
-                modifier = Modifier.size(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.primaryContainer
-            ) {
+        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Surface(modifier = Modifier.size(56.dp), shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.primaryContainer) {
                 Box(contentAlignment = Alignment.Center) {
-                    // Pega a primeira letra do nome do cliente.
-                    Text(
-                        text = cliente.nome.take(1).uppercase(),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    Text(text = cliente.nome.take(1).uppercase(), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 }
             }
-            
             Spacer(modifier = Modifier.width(16.dp))
-            
-            // Column: Informações do cliente uma embaixo da outra.
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    cliente.nome, 
-                    style = MaterialTheme.typography.titleMedium, 
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                // Chamamos a função InfoRow para cada dado (Telefone, E-mail, Cidade).
+                Text(cliente.nome, fontWeight = FontWeight.Bold)
                 InfoRow(Icons.Default.LocalPhone, cliente.telefone)
-                InfoRow(Icons.Default.Mail, cliente.email)
                 InfoRow(Icons.Default.Place, cliente.cidade)
             }
-            
-            // Pequena coluna com os botões de ação no canto direito.
             Column {
-                IconButton(onClick = onEdit) {
-                    Icon(Icons.Default.Edit, stringResource(R.string.content_desc_edit), tint = MaterialTheme.colorScheme.primary)
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.DeleteOutline, stringResource(R.string.content_desc_delete), tint = MaterialTheme.colorScheme.error)
-                }
+                IconButton(onClick = onEdit) { Icon(Icons.Default.Edit, null, tint = MaterialTheme.colorScheme.primary) }
+                IconButton(onClick = onDelete) { Icon(Icons.Default.DeleteOutline, null, tint = MaterialTheme.colorScheme.error) }
             }
         }
     }
 }
 
-/**
- * Função auxiliar para desenhar uma linha com ícone pequeno + texto.
- */
 @Composable
 fun InfoRow(icon: ImageVector, text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 1.dp)) {
-        Icon(icon, null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(modifier = Modifier.width(6.dp))
-        Text(
-            text = text, 
-            style = MaterialTheme.typography.bodySmall, 
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1 // Garante que o texto não quebre a linha se for muito longo.
-        )
+    Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text, style = MaterialTheme.typography.bodySmall)
     }
 }

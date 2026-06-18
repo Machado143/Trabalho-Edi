@@ -20,5 +20,7 @@ interface ClienteDao {
 
     @Query("SELECT * FROM cliente WHERE id = :id")
     suspend fun getById(id: Int): Cliente?
-}
 
+    @Query("SELECT COUNT(*) FROM cliente")
+    fun getCount(): Flow<Int>
+}

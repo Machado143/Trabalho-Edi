@@ -1,5 +1,8 @@
 package com.example.appdecontroledepedidoseclientes.ui.screens
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,64 +14,117 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.appdecontroledepedidoseclientes.R
 import com.example.appdecontroledepedidoseclientes.data.entity.Produto
 import com.example.appdecontroledepedidoseclientes.ui.viewmodel.ProdutoViewModel
+import kotlinx.coroutines.launch
 
 /**
- * --- EXPLICAÇÃO BÁSICA PARA APRESENTAÇÃO ---
- * 
- * @Composable: É como uma peça de LEGO. No Android moderno, as telas são montadas juntando 
- * essas peças. Sempre que você quiser "desenhar" algo na tela, usa o @Composable.
+ * --- O QUE É @Composable? ---
+ * É a anotação básica do Jetpack Compose. Ela diz que esta função
+ * não apenas executa código, mas "desenha" algo na tela do celular.
  */
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProdutoScreen(
-    navController: NavController, // O "controle remoto" que nos leva de uma tela para outra.
-    viewModel: ProdutoViewModel    // O "gerente" que cuida dos dados dos produtos e fala com o banco de dados.
+    navController: NavController, // O "GPS": Controla a navegação entre telas.
+    viewModel: ProdutoViewModel    // O "Gerente": Cuida dos dados dos produtos.
 ) {
-    // collectAsState: Faz com que a tela fique "viva". Se alguém mudar um produto no banco,
-    // a tela percebe e se redesenha sozinha com o novo dado.
+    // collectAsState: Faz a tela "vigiar" a lista de produtos. Se mudar no banco, a tela atualiza.
     val produtos by viewModel.produtos.collectAsState()
     
-    // remember { mutableStateOf(...) }: É a "memória" da tela. 
-    // Se a tela piscar ou atualizar, ela não esquece o que estava acontecendo.
-    var showDialog by remember { mutableStateOf(false) } // Controla se a janelinha (pop-up) está aberta.
-    var editingProduto by remember { mutableStateOf<Produto?>(null) } // Guarda qual produto estamos mexendo.
-    
-    // Variáveis que guardam o que você digita nas caixinhas de texto.
+    // Estados para Busca e Ordenação (Requisitos 3 e 12)
+    var searchQuery by remember { mutableStateOf("") }
+    var isSearchActive by remember { mutableStateOf(false) }
+    var isAscending by remember { mutableStateOf(true) }
+
+    // Filtragem e Ordenação em tempo real
+    val filteredProdutos = remember(produtos, searchQuery, isAscending) {
+        val filtered = produtos.filter { 
+            it.nome.contains(searchQuery, ignoreCase = true) || 
+            it.descricao.contains(searchQuery, ignoreCase = true) 
+        }
+        if (isAscending) filtered.sortedBy { it.nome } else filtered.sortedByDescending { it.nome }
+    }
+
+    // Variáveis de memória (remember) para o formulário
+    var showDialog by remember { mutableStateOf(false) }
+    var editingProduto by remember { mutableStateOf<Produto?>(null) }
     var nome by remember { mutableStateOf("") }
     var descricao by remember { mutableStateOf("") }
     var valor by remember { mutableStateOf("") }
     var quantidade by remember { mutableStateOf("") }
+    
+    // Estados de Erro para Validação (Requisito 4)
+    var nomeError by remember { mutableStateOf(false) }
+    var valorError by remember { mutableStateOf(false) }
+    var qtdError by remember { mutableStateOf(false) }
 
-    // Scaffold: É a moldura da tela. Ele reserva o lugar da barra de cima e do botão de baixo.
+    // Estado para Confirmação de Exclusão (Requisito 1)
+    var produtoParaExcluir by remember { mutableStateOf<Produto?>(null) }
+
+    // Snackbar e Scope: Para mostrar a mensagem de "Desfazer" (Requisito 5)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // Scaffold: A estrutura de esqueleto da tela (TopBar + Conteúdo + Botão Flutuante)
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            // Barra superior com título e botão de voltar.
-            MediumTopAppBar(
-                title = { Text(stringResource(R.string.title_products), fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_desc_back))
+            if (isSearchActive) {
+                // Barra de Busca Ativa
+                TopAppBar(
+                    title = {
+                        TextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = { Text(stringResource(R.string.search_hint)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            colors = TextFieldDefaults.colors()
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { isSearchActive = false; searchQuery = "" }) {
+                            Icon(Icons.Default.Close, null)
+                        }
                     }
-                }
-            )
+                )
+            } else {
+                MediumTopAppBar(
+                    title = { Text(stringResource(R.string.title_products), fontWeight = FontWeight.Bold) },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_desc_back))
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { isSearchActive = true }) {
+                            Icon(Icons.Default.Search, contentDescription = stringResource(R.string.content_desc_search))
+                        }
+                        // Botão de Ordenação (Requisito 12)
+                        IconButton(onClick = { isAscending = !isAscending }) {
+                            Icon(
+                                imageVector = if (isAscending) Icons.Default.SortByAlpha else Icons.Default.Sort,
+                                contentDescription = "Ordenar"
+                            )
+                        }
+                    }
+                )
+            }
         },
         floatingActionButton = {
-            // Botão redondo que fica "voando" na tela para adicionar novo produto.
             ExtendedFloatingActionButton(
                 onClick = { 
-                    editingProduto = null // Reseta para modo de criação
+                    editingProduto = null
                     nome = ""; descricao = ""; valor = ""; quantidade = ""
+                    nomeError = false; valorError = false; qtdError = false
                     showDialog = true 
                 },
                 icon = { Icon(Icons.Filled.AddShoppingCart, stringResource(R.string.content_desc_add)) },
@@ -77,106 +133,142 @@ fun ProdutoScreen(
                 shape = RoundedCornerShape(20.dp)
             )
         }
-    ) { padding -> // 'padding' evita que o conteúdo fique escondido atrás da barra de cima.
-        
-        // Se a lista estiver vazia, mostra uma mensagem amigável.
-        if (produtos.isEmpty()) {
+    ) { padding ->
+        if (filteredProdutos.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.Inventory, 
-                        null, 
-                        modifier = Modifier.size(64.dp), 
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(stringResource(R.string.empty_stock), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                Text(if (searchQuery.isEmpty()) stringResource(R.string.empty_stock) else "Nenhum produto encontrado")
             }
         } else {
-            // LazyColumn: Uma lista infinita que economiza bateria. 
-            // Ela só gasta processamento para desenhar o que você está vendo agora.
+            // LazyColumn: Lista que economiza bateria, desenha só o que aparece na tela.
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Para cada produto na lista, criamos um "Cartão" (ProdutoCard).
-                items(produtos) { produto ->
-                    ProdutoCard(
-                        produto = produto,
-                        onEdit = {
-                            // Prepara os dados para editar
-                            editingProduto = produto
-                            nome = produto.nome
-                            descricao = produto.descricao
-                            valor = produto.valor.toString()
-                            quantidade = produto.quantidade.toString()
-                            showDialog = true
-                        },
-                        onDelete = { viewModel.delete(produto) }
+                items(filteredProdutos, key = { it.id }) { produto ->
+                    // SwipeToDismissBox: Permite excluir deslizando o card (Requisito 11)
+                    val dismissState = rememberSwipeToDismissBoxState(
+                        confirmValueChange = {
+                            if (it == SwipeToDismissBoxValue.EndToStart) {
+                                produtoParaExcluir = produto
+                                true
+                            } else false
+                        }
                     )
+
+                    SwipeToDismissBox(
+                        state = dismissState,
+                        enableDismissFromStartToEnd = false,
+                        backgroundContent = {
+                            val color = if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) Color.Red else Color.Transparent
+                            Box(
+                                Modifier.fillMaxSize().clip(RoundedCornerShape(24.dp)).background(color).padding(horizontal = 20.dp),
+                                contentAlignment = Alignment.CenterEnd
+                            ) {
+                                Icon(Icons.Default.Delete, contentDescription = null, tint = Color.White)
+                            }
+                        }
+                    ) {
+                        // AnimatedVisibility: Faz o card entrar com animação suave (Requisito 6)
+                        AnimatedVisibility(
+                            visible = true,
+                            enter = fadeIn(animationSpec = tween(500)) + slideInVertically(animationSpec = tween(500)) { it / 2 }
+                        ) {
+                            ProdutoCard(
+                                produto = produto,
+                                onEdit = {
+                                    editingProduto = produto
+                                    nome = produto.nome; descricao = produto.descricao
+                                    valor = produto.valor.toString(); quantidade = produto.quantidade.toString()
+                                    nomeError = false; valorError = false; qtdError = false
+                                    showDialog = true
+                                },
+                                onDelete = { produtoParaExcluir = produto }
+                            )
+                        }
+                    }
                 }
                 item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
 
-        // AlertDialog: Janelinha (Pop-up) que aparece para cadastrar ou editar um produto.
+        // Alerta de Confirmação antes de Excluir
+        if (produtoParaExcluir != null) {
+            AlertDialog(
+                onDismissRequest = { produtoParaExcluir = null },
+                title = { Text(stringResource(R.string.delete_confirm_title)) },
+                text = { Text("Deseja realmente excluir este produto?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            val target = produtoParaExcluir!!
+                            viewModel.delete(target)
+                            produtoParaExcluir = null
+                            // Snackbar com ação de Desfazer
+                            scope.launch {
+                                val result = snackbarHostState.showSnackbar("Produto removido", "Desfazer", duration = SnackbarDuration.Short)
+                                if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) { Text(stringResource(R.string.btn_confirm)) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { produtoParaExcluir = null }) { Text(stringResource(R.string.btn_cancel)) }
+                }
+            )
+        }
+
+        // Janela de Cadastro com Mensagens de Erro (Validação)
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
                 title = { Text(if (editingProduto == null) stringResource(R.string.dialog_new_product) else stringResource(R.string.dialog_edit_product), fontWeight = FontWeight.Bold) },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(top = 8.dp)) {
-                        // Caixinhas de texto (Inputs).
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         OutlinedTextField(
-                            value = nome, onValueChange = { nome = it }, 
+                            value = nome, onValueChange = { nome = it; nomeError = false }, 
                             label = { Text(stringResource(R.string.label_product_name)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp)
+                            isError = nomeError, // Fica vermelho se houver erro
+                            supportingText = { if (nomeError) Text(stringResource(R.string.error_field_required)) },
+                            modifier = Modifier.fillMaxWidth()
                         )
                         OutlinedTextField(
                             value = descricao, onValueChange = { descricao = it }, 
                             label = { Text(stringResource(R.string.label_short_description)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp)
+                            modifier = Modifier.fillMaxWidth()
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             OutlinedTextField(
-                                value = valor, onValueChange = { valor = it }, 
+                                value = valor, onValueChange = { valor = it; valorError = false }, 
                                 label = { Text(stringResource(R.string.label_price)) },
+                                isError = valorError,
                                 modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(16.dp),
                                 prefix = { Text(stringResource(R.string.currency_prefix)) }
                             )
                             OutlinedTextField(
-                                value = quantidade, onValueChange = { quantidade = it }, 
+                                value = quantidade, onValueChange = { quantidade = it; qtdError = false }, 
                                 label = { Text(stringResource(R.string.label_qty_short)) },
-                                modifier = Modifier.weight(0.7f),
-                                shape = RoundedCornerShape(16.dp)
+                                isError = qtdError,
+                                modifier = Modifier.weight(0.7f)
                             )
                         }
                     }
                 },
                 confirmButton = {
-                    Button(
-                        onClick = {
-                            // Cria o objeto produto e salva no banco de dados.
-                            val p = Produto(
-                                id = editingProduto?.id ?: 0,
-                                nome = nome,
-                                descricao = descricao,
-                                valor = valor.toDoubleOrNull() ?: 0.0,
-                                quantidade = quantidade.toIntOrNull() ?: 0
-                            )
+                    Button(onClick = {
+                        val v = valor.toDoubleOrNull() ?: -1.0
+                        val q = quantidade.toIntOrNull() ?: -1
+                        if (nome.isBlank()) nomeError = true
+                        if (v < 0) valorError = true
+                        if (q < 0) qtdError = true
+                        
+                        if (!nomeError && !valorError && !qtdError) {
+                            val p = Produto(editingProduto?.id ?: 0, nome, descricao, v, q)
                             if (editingProduto == null) viewModel.insert(p) else viewModel.update(p)
                             showDialog = false
-                        },
-                        shape = RoundedCornerShape(12.dp)
-                    ) { Text(stringResource(R.string.btn_confirm)) }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDialog = false }) { Text(stringResource(R.string.btn_cancel)) }
+                        }
+                    }) { Text(stringResource(R.string.btn_confirm)) }
                 }
             )
         }
@@ -185,7 +277,7 @@ fun ProdutoScreen(
 
 /**
  * --- COMPONENTE DO CARTÃO ---
- * Esta função desenha cada "bloco" de produto que aparece na lista.
+ * Esta função desenha cada bloco de produto que aparece na lista.
  */
 @Composable
 fun ProdutoCard(produto: Produto, onEdit: () -> Unit, onDelete: () -> Unit) {
@@ -196,88 +288,33 @@ fun ProdutoCard(produto: Produto, onEdit: () -> Unit, onDelete: () -> Unit) {
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            // Row: Organiza os itens deitados (lado a lado).
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = produto.nome,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = produto.descricao,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2
-                    )
+                    Text(text = produto.nome, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(text = produto.descricao, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
                 }
-                
-                // Exibe o preço formatado.
-                Surface(
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.currency_format, produto.valor),
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
+                Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(12.dp)) {
+                    Text(text = stringResource(R.string.currency_format, produto.valor), modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), fontWeight = FontWeight.ExtraBold)
                 }
             }
-            
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp) // Linha divisória.
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
             Spacer(modifier = Modifier.height(16.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Lógica de cor: Se o estoque estiver baixo, fica laranja/vermelho.
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 val stockColor = if (produto.quantidade > 5) MaterialTheme.colorScheme.primary 
                                 else if (produto.quantidade > 0) Color(0xFFE65100) 
                                 else MaterialTheme.colorScheme.error
 
-                Surface(
-                    color = stockColor.copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            if (produto.quantidade > 0) Icons.Default.CheckCircle else Icons.Default.Warning, 
-                            null, 
-                            modifier = Modifier.size(16.dp),
-                            tint = stockColor
-                        )
+                Surface(color = stockColor.copy(alpha = 0.1f), shape = RoundedCornerShape(8.dp)) {
+                    Row(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(if (produto.quantidade > 0) Icons.Default.CheckCircle else Icons.Default.Warning, null, modifier = Modifier.size(16.dp), tint = stockColor)
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = stringResource(R.string.label_stock_qty, produto.quantidade),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = stockColor
-                        )
+                        Text(text = stringResource(R.string.label_stock_qty, produto.quantidade), fontWeight = FontWeight.Bold, color = stockColor)
                     }
                 }
-                
-                // Botões para Editar e Excluir.
                 Row {
-                    IconButton(onClick = onEdit) {
-                        Icon(Icons.Default.Edit, stringResource(R.string.content_desc_edit), tint = MaterialTheme.colorScheme.primary)
-                    }
-                    IconButton(onClick = onDelete) {
-                        Icon(Icons.Default.DeleteOutline, stringResource(R.string.content_desc_delete), tint = MaterialTheme.colorScheme.error)
-                    }
+                    IconButton(onClick = onEdit) { Icon(Icons.Default.Edit, null, tint = MaterialTheme.colorScheme.primary) }
+                    IconButton(onClick = onDelete) { Icon(Icons.Default.DeleteOutline, null, tint = MaterialTheme.colorScheme.error) }
                 }
             }
         }

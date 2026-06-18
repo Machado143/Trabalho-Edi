@@ -9,5 +9,5 @@ class ProdutoRepository(private val dao: ProdutoDao) {
     suspend fun update(produto: Produto) = dao.update(produto)
     suspend fun delete(produto: Produto) = dao.delete(produto)
     suspend fun getById(id: Int) = dao.getById(id)
+    fun getCount() = dao.getCount()
 }
-

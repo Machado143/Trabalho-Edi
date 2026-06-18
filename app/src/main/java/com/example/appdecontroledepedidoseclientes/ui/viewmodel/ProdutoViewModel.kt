@@ -16,6 +16,8 @@ class ProdutoViewModel(private val repository: ProdutoRepository) : ViewModel() 
         initialValue = emptyList()
     )
 
+    private var lastDeletedProduto: Produto? = null
+
     fun insert(produto: Produto) = viewModelScope.launch {
         repository.insert(produto)
     }
@@ -25,7 +27,14 @@ class ProdutoViewModel(private val repository: ProdutoRepository) : ViewModel() 
     }
 
     fun delete(produto: Produto) = viewModelScope.launch {
+        lastDeletedProduto = produto
         repository.delete(produto)
     }
-}
 
+    fun undoDelete() = viewModelScope.launch {
+        lastDeletedProduto?.let {
+            repository.insert(it)
+            lastDeletedProduto = null
+        }
+    }
+}

@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 import com.example.appdecontroledepedidoseclientes.data.dao.*
 import com.example.appdecontroledepedidoseclientes.data.entity.*
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.appdecontroledepedidoseclientes.util.SecurityUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,6 +18,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun produtoDao(): ProdutoDao
     abstract fun pedidoDao(): PedidoDao
     abstract fun usuarioDao(): UsuarioDao
+    // TODO: ItemPedidoDao será adicionado na v2 para suportar múltiplos produtos por pedido
 
     companion object {
         @Volatile
@@ -32,9 +34,12 @@ abstract class AppDatabase : RoomDatabase() {
                 .addCallback(object : RoomDatabase.Callback() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)
-                        // Add default user
+                        // Usuários padrão para teste
                         CoroutineScope(Dispatchers.IO).launch {
-                            INSTANCE?.usuarioDao()?.insert(Usuario("admin", "12345"))
+                            // Primeiro usuário: machado / 2009
+                            INSTANCE?.usuarioDao()?.insert(Usuario("machado", SecurityUtils.hashPassword("2009")))
+                            // Segundo usuário: demo / 1234
+                            INSTANCE?.usuarioDao()?.insert(Usuario("demo", SecurityUtils.hashPassword("1234")))
                         }
                     }
                 })
@@ -45,4 +50,3 @@ abstract class AppDatabase : RoomDatabase() {
         }
     }
 }
-

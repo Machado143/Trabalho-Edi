@@ -9,5 +9,5 @@ class ClienteRepository(private val dao: ClienteDao) {
     suspend fun update(cliente: Cliente) = dao.update(cliente)
     suspend fun delete(cliente: Cliente) = dao.delete(cliente)
     suspend fun getById(id: Int) = dao.getById(id)
+    fun getCount() = dao.getCount()
 }
-

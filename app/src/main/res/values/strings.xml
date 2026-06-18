@@ -15,6 +15,10 @@
     <string name="welcome_back">Bem-vindo de volta, %1$s</string>
     <string name="content_desc_profile">Perfil</string>
     <string name="section_management">Gerenciamento</string>
+    <string name="metric_total_clients">Total Clientes</string>
+    <string name="metric_total_products">Total Produtos</string>
+    <string name="metric_orders_today">Pedidos Hoje</string>
+    <string name="metric_total_revenue">Faturamento Mês</string>
     
     <!-- Menu Items -->
     <string name="menu_clients">Clientes</string>
@@ -43,6 +47,12 @@
     <string name="btn_cancel">Cancelar</string>
     <string name="content_desc_edit">Editar</string>
     <string name="content_desc_delete">Excluir</string>
+    <string name="search_hint">Pesquisar...</string>
+    <string name="delete_confirm_title">Confirmar Exclusão</string>
+    <string name="delete_confirm_msg">Tem certeza que deseja excluir este item?</string>
+    <string name="error_field_required">Campo obrigatório</string>
+    <string name="undo">Desfazer</string>
+    <string name="item_deleted">Item excluído</string>
 
     <!-- Pedido Screen -->
     <string name="title_orders">Pedidos</string>
@@ -63,6 +73,11 @@
     <string name="order_date_time">%1$s • %2$s</string>
     <string name="order_quantity_label">Quantidade: %1$d un.</string>
     <string name="currency_format">R$ %1$.2f</string>
+    <string name="status_pending">Pendente</string>
+    <string name="status_preparing">Em preparo</string>
+    <string name="status_delivered">Entregue</string>
+    <string name="status_cancelled">Cancelado</string>
+    <string name="filter_status">Todos os Status</string>
 
     <!-- Produto Screen -->
     <string name="title_products">Produtos</string>

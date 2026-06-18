@@ -199,20 +199,20 @@ fun LoginScreen(
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                // Uma dica visual discreta para facilitar o teste.
-                Surface(
-                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(12.dp)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Botão para criar conta
+                OutlinedButton(
+                    onClick = { navController.navigate("register") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text(
-                        stringResource(R.string.login_tip),
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
+                    Text("Criar Nova Conta", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
+                
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
