@@ -19,17 +19,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.appdecontroledepedidoseclientes.R
 import kotlinx.coroutines.delay
 
+/**
+ * EXPLICACAO PARA APRESENTACAO:
+ * Esta e a Tela de Abertura (Splash Screen). 
+ * Ela aparece assim que o app abre, mostra a logomarca com uma animacao e depois vai para o Login.
+ */
 @Composable
 fun SplashScreen(navController: NavController) {
-    // Removendo os tipos explícitos para usar a função Animatable correta para Float
+    // Variavel que controla o tamanho (escala) para fazer o efeito de "pulso" na abertura
     val scale = remember { Animatable(0f) }
 
+    // LaunchedEffect roda uma vez quando a tela abre
     LaunchedEffect(Unit) {
+        // Faz a animacao de crescer o logo (de 0 para 1) com um efeito de mola (spring)
         scale.animateTo(
             targetValue = 1f,
             animationSpec = spring(
@@ -37,7 +46,9 @@ fun SplashScreen(navController: NavController) {
                 stiffness = Spring.StiffnessLow
             )
         )
+        // Espera 2 segundos para o usuario ver a marca
         delay(2000L)
+        // Navega para a tela de login e remove a Splash do historico
         navController.navigate("login") {
             popUpTo("splash") { inclusive = true }
         }
@@ -47,6 +58,7 @@ fun SplashScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(
+                // Fundo com degrade usando a cor primaria do tema
                 brush = Brush.verticalGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.primary,
@@ -58,8 +70,9 @@ fun SplashScreen(navController: NavController) {
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.scale(scale.value)
+            modifier = Modifier.scale(scale.value) // Aplica o valor da animacao aqui
         ) {
+            // Desenha o icone da sacola de compras dentro de um quadrado arredondado
             Surface(
                 modifier = Modifier.size(120.dp),
                 shape = RoundedCornerShape(28.dp),
@@ -74,14 +87,16 @@ fun SplashScreen(navController: NavController) {
                 )
             }
             Spacer(modifier = Modifier.height(24.dp))
+            // Nome do aplicativo
             Text(
-                text = "OrderManager",
+                text = stringResource(R.string.splash_title),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onPrimary,
                 fontWeight = FontWeight.Bold
             )
+            // Slogan ou subtitulo
             Text(
-                text = "Controle total na sua mão",
+                text = stringResource(R.string.splash_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
             )

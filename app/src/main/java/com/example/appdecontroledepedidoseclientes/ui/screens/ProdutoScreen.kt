@@ -12,50 +12,74 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.appdecontroledepedidoseclientes.R
 import com.example.appdecontroledepedidoseclientes.data.entity.Produto
 import com.example.appdecontroledepedidoseclientes.ui.viewmodel.ProdutoViewModel
 
+/**
+ * --- EXPLICAÇÃO BÁSICA PARA APRESENTAÇÃO ---
+ * 
+ * @Composable: É como uma peça de LEGO. No Android moderno, as telas são montadas juntando 
+ * essas peças. Sempre que você quiser "desenhar" algo na tela, usa o @Composable.
+ */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProdutoScreen(navController: NavController, viewModel: ProdutoViewModel) {
+fun ProdutoScreen(
+    navController: NavController, // O "controle remoto" que nos leva de uma tela para outra.
+    viewModel: ProdutoViewModel    // O "gerente" que cuida dos dados dos produtos e fala com o banco de dados.
+) {
+    // collectAsState: Faz com que a tela fique "viva". Se alguém mudar um produto no banco,
+    // a tela percebe e se redesenha sozinha com o novo dado.
     val produtos by viewModel.produtos.collectAsState()
-    var showDialog by remember { mutableStateOf(false) }
-    var editingProduto by remember { mutableStateOf<Produto?>(null) }
+    
+    // remember { mutableStateOf(...) }: É a "memória" da tela. 
+    // Se a tela piscar ou atualizar, ela não esquece o que estava acontecendo.
+    var showDialog by remember { mutableStateOf(false) } // Controla se a janelinha (pop-up) está aberta.
+    var editingProduto by remember { mutableStateOf<Produto?>(null) } // Guarda qual produto estamos mexendo.
+    
+    // Variáveis que guardam o que você digita nas caixinhas de texto.
     var nome by remember { mutableStateOf("") }
     var descricao by remember { mutableStateOf("") }
     var valor by remember { mutableStateOf("") }
     var quantidade by remember { mutableStateOf("") }
 
+    // Scaffold: É a moldura da tela. Ele reserva o lugar da barra de cima e do botão de baixo.
     Scaffold(
         topBar = {
+            // Barra superior com título e botão de voltar.
             MediumTopAppBar(
-                title = { Text("Produtos", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.title_products), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_desc_back))
                     }
                 }
             )
         },
         floatingActionButton = {
+            // Botão redondo que fica "voando" na tela para adicionar novo produto.
             ExtendedFloatingActionButton(
                 onClick = { 
-                    editingProduto = null
+                    editingProduto = null // Reseta para modo de criação
                     nome = ""; descricao = ""; valor = ""; quantidade = ""
                     showDialog = true 
                 },
-                icon = { Icon(Icons.Filled.AddShoppingCart, "Adicionar") },
-                text = { Text("Novo Produto") },
+                icon = { Icon(Icons.Filled.AddShoppingCart, stringResource(R.string.content_desc_add)) },
+                text = { Text(stringResource(R.string.btn_new_product)) },
                 containerColor = MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(20.dp)
             )
         }
-    ) { padding ->
+    ) { padding -> // 'padding' evita que o conteúdo fique escondido atrás da barra de cima.
+        
+        // Se a lista estiver vazia, mostra uma mensagem amigável.
         if (produtos.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -66,19 +90,23 @@ fun ProdutoScreen(navController: NavController, viewModel: ProdutoViewModel) {
                         tint = MaterialTheme.colorScheme.outline
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("O estoque está vazio", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.empty_stock), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         } else {
+            // LazyColumn: Uma lista infinita que economiza bateria. 
+            // Ela só gasta processamento para desenhar o que você está vendo agora.
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Para cada produto na lista, criamos um "Cartão" (ProdutoCard).
                 items(produtos) { produto ->
                     ProdutoCard(
                         produto = produto,
                         onEdit = {
+                            // Prepara os dados para editar
                             editingProduto = produto
                             nome = produto.nome
                             descricao = produto.descricao
@@ -93,35 +121,37 @@ fun ProdutoScreen(navController: NavController, viewModel: ProdutoViewModel) {
             }
         }
 
+        // AlertDialog: Janelinha (Pop-up) que aparece para cadastrar ou editar um produto.
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
-                title = { Text(if (editingProduto == null) "Novo Produto" else "Editar Produto", fontWeight = FontWeight.Bold) },
+                title = { Text(if (editingProduto == null) stringResource(R.string.dialog_new_product) else stringResource(R.string.dialog_edit_product), fontWeight = FontWeight.Bold) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(top = 8.dp)) {
+                        // Caixinhas de texto (Inputs).
                         OutlinedTextField(
                             value = nome, onValueChange = { nome = it }, 
-                            label = { Text("Nome do Produto") },
+                            label = { Text(stringResource(R.string.label_product_name)) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp)
                         )
                         OutlinedTextField(
                             value = descricao, onValueChange = { descricao = it }, 
-                            label = { Text("Descrição Breve") },
+                            label = { Text(stringResource(R.string.label_short_description)) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp)
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             OutlinedTextField(
                                 value = valor, onValueChange = { valor = it }, 
-                                label = { Text("Preço") },
+                                label = { Text(stringResource(R.string.label_price)) },
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(16.dp),
-                                prefix = { Text("R$ ") }
+                                prefix = { Text(stringResource(R.string.currency_prefix)) }
                             )
                             OutlinedTextField(
                                 value = quantidade, onValueChange = { quantidade = it }, 
-                                label = { Text("Qtd") },
+                                label = { Text(stringResource(R.string.label_qty_short)) },
                                 modifier = Modifier.weight(0.7f),
                                 shape = RoundedCornerShape(16.dp)
                             )
@@ -131,6 +161,7 @@ fun ProdutoScreen(navController: NavController, viewModel: ProdutoViewModel) {
                 confirmButton = {
                     Button(
                         onClick = {
+                            // Cria o objeto produto e salva no banco de dados.
                             val p = Produto(
                                 id = editingProduto?.id ?: 0,
                                 nome = nome,
@@ -142,16 +173,20 @@ fun ProdutoScreen(navController: NavController, viewModel: ProdutoViewModel) {
                             showDialog = false
                         },
                         shape = RoundedCornerShape(12.dp)
-                    ) { Text("Confirmar") }
+                    ) { Text(stringResource(R.string.btn_confirm)) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDialog = false }) { Text("Cancelar") }
+                    TextButton(onClick = { showDialog = false }) { Text(stringResource(R.string.btn_cancel)) }
                 }
             )
         }
     }
 }
 
+/**
+ * --- COMPONENTE DO CARTÃO ---
+ * Esta função desenha cada "bloco" de produto que aparece na lista.
+ */
 @Composable
 fun ProdutoCard(produto: Produto, onEdit: () -> Unit, onDelete: () -> Unit) {
     Card(
@@ -161,6 +196,7 @@ fun ProdutoCard(produto: Produto, onEdit: () -> Unit, onDelete: () -> Unit) {
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
+            // Row: Organiza os itens deitados (lado a lado).
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -181,12 +217,13 @@ fun ProdutoCard(produto: Produto, onEdit: () -> Unit, onDelete: () -> Unit) {
                     )
                 }
                 
+                // Exibe o preço formatado.
                 Surface(
                     color = MaterialTheme.colorScheme.secondaryContainer,
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        text = "R$ ${String.format("%.2f", produto.valor)}",
+                        text = stringResource(R.string.currency_format, produto.valor),
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold,
@@ -196,7 +233,7 @@ fun ProdutoCard(produto: Produto, onEdit: () -> Unit, onDelete: () -> Unit) {
             }
             
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp) // Linha divisória.
             Spacer(modifier = Modifier.height(16.dp))
             
             Row(
@@ -204,8 +241,9 @@ fun ProdutoCard(produto: Produto, onEdit: () -> Unit, onDelete: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Lógica de cor: Se o estoque estiver baixo, fica laranja/vermelho.
                 val stockColor = if (produto.quantidade > 5) MaterialTheme.colorScheme.primary 
-                                else if (produto.quantidade > 0) Color(0xFFE65100) // Orange
+                                else if (produto.quantidade > 0) Color(0xFFE65100) 
                                 else MaterialTheme.colorScheme.error
 
                 Surface(
@@ -224,7 +262,7 @@ fun ProdutoCard(produto: Produto, onEdit: () -> Unit, onDelete: () -> Unit) {
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Estoque: ${produto.quantidade}",
+                            text = stringResource(R.string.label_stock_qty, produto.quantidade),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
                             color = stockColor
@@ -232,12 +270,13 @@ fun ProdutoCard(produto: Produto, onEdit: () -> Unit, onDelete: () -> Unit) {
                     }
                 }
                 
+                // Botões para Editar e Excluir.
                 Row {
                     IconButton(onClick = onEdit) {
-                        Icon(Icons.Default.Edit, "Editar", tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Default.Edit, stringResource(R.string.content_desc_edit), tint = MaterialTheme.colorScheme.primary)
                     }
                     IconButton(onClick = onDelete) {
-                        Icon(Icons.Default.DeleteOutline, "Excluir", tint = MaterialTheme.colorScheme.error)
+                        Icon(Icons.Default.DeleteOutline, stringResource(R.string.content_desc_delete), tint = MaterialTheme.colorScheme.error)
                     }
                 }
             }

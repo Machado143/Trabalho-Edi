@@ -1,3 +1,95 @@
 <resources>
     <string name="app_name">App de Controle de Pedidos e Clientes</string>
+    
+    <!-- Login Screen -->
+    <string name="login_title">Controle de Vendas</string>
+    <string name="login_subtitle">Gerencie seus pedidos com facilidade</string>
+    <string name="label_username">Usuário</string>
+    <string name="label_password">Senha</string>
+    <string name="error_empty_fields">Preencha todos os campos</string>
+    <string name="btn_access">Acessar Sistema</string>
+    <string name="login_tip">Dica: admin / 12345</string>
+
+    <!-- Main Screen -->
+    <string name="dashboard_title">Dashboard</string>
+    <string name="welcome_back">Bem-vindo de volta, %1$s</string>
+    <string name="content_desc_profile">Perfil</string>
+    <string name="section_management">Gerenciamento</string>
+    
+    <!-- Menu Items -->
+    <string name="menu_clients">Clientes</string>
+    <string name="menu_clients_sub">Gerencie sua base</string>
+    <string name="menu_products">Produtos</string>
+    <string name="menu_products_sub">Catálogo e preços</string>
+    <string name="menu_orders">Pedidos</string>
+    <string name="menu_orders_sub">Histórico de vendas</string>
+    <string name="menu_settings">Ajustes</string>
+    <string name="menu_settings_sub">Preferências</string>
+
+    <!-- Cliente Screen -->
+    <string name="title_clients">Clientes</string>
+    <string name="content_desc_back">Voltar</string>
+    <string name="content_desc_search">Buscar</string>
+    <string name="content_desc_add">Adicionar</string>
+    <string name="btn_new_client">Novo Cliente</string>
+    <string name="empty_clients">Nenhum cliente cadastrado</string>
+    <string name="dialog_new_client">Novo Cliente</string>
+    <string name="dialog_edit_client">Editar Cliente</string>
+    <string name="label_full_name">Nome Completo</string>
+    <string name="label_phone">Telefone</string>
+    <string name="label_email">E-mail</string>
+    <string name="label_city">Cidade</string>
+    <string name="btn_save">Salvar</string>
+    <string name="btn_cancel">Cancelar</string>
+    <string name="content_desc_edit">Editar</string>
+    <string name="content_desc_delete">Excluir</string>
+
+    <!-- Pedido Screen -->
+    <string name="title_orders">Pedidos</string>
+    <string name="btn_new_order">Novo Pedido</string>
+    <string name="empty_orders">Nenhum pedido registrado</string>
+    <string name="dialog_new_order">Registrar Novo Pedido</string>
+    <string name="label_client">Cliente</string>
+    <string name="label_product">Produto</string>
+    <string name="label_product_with_price">%1$s (R$ %2$.2f)</string>
+    <string name="label_quantity">Quantidade</string>
+    <string name="label_date">Data</string>
+    <string name="label_time">Hora</string>
+    <string name="btn_finish">Finalizar</string>
+    <string name="btn_ok">OK</string>
+    <string name="dialog_delete_order_title">Cancelar Pedido</string>
+    <string name="dialog_delete_order_text">Tem certeza que deseja remover este pedido do sistema?</string>
+    <string name="btn_confirm">Confirmar</string>
+    <string name="order_date_time">%1$s • %2$s</string>
+    <string name="order_quantity_label">Quantidade: %1$d un.</string>
+    <string name="currency_format">R$ %1$.2f</string>
+
+    <!-- Produto Screen -->
+    <string name="title_products">Produtos</string>
+    <string name="btn_new_product">Novo Produto</string>
+    <string name="empty_stock">O estoque está vazio</string>
+    <string name="dialog_new_product">Novo Produto</string>
+    <string name="dialog_edit_product">Editar Produto</string>
+    <string name="label_product_name">Nome do Produto</string>
+    <string name="label_short_description">Descrição Breve</string>
+    <string name="label_price">Preço</string>
+    <string name="currency_prefix">R$ </string>
+    <string name="label_qty_short">Qtd</string>
+    <string name="label_stock_qty">Estoque: %1$d</string>
+
+    <!-- Splash Screen -->
+    <string name="splash_title">OrderManager</string>
+    <string name="splash_subtitle">Controle total na sua mão</string>
+
+    <!-- Settings Screen -->
+    <string name="title_settings">Configurações</string>
+    <string name="section_profile">Perfil do Usuário</string>
+    <string name="label_display_name">Nome de Exibição</string>
+    <string name="section_appearance">Aparência e Sistema</string>
+    <string name="setting_dark_mode">Modo Escuro</string>
+    <string name="setting_dark_mode_sub">Visual confortável para a noite</string>
+    <string name="setting_notifications">Notificações</string>
+    <string name="setting_notifications_sub">Alertas de pedidos e estoque</string>
+    <string name="btn_logout">Desconectar Conta</string>
+    <string name="app_version">Versão do Aplicativo 1.2.0</string>
 </resources>
