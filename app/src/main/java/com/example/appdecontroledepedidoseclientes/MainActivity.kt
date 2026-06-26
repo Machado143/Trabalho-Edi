@@ -43,6 +43,9 @@ class MainActivity : ComponentActivity() {
         val mainViewModel = ViewModelProvider(this, factory)[MainViewModel::class.java]
         
         enableEdgeToEdge()
+        // Remove splash theme and apply the regular app theme before composing UI
+        setTheme(R.style.Theme_AppDeControleDePedidosEClientes)
+
         setContent {
             val isDarkPref by settingsViewModel.isDarkMode.collectAsState()
             

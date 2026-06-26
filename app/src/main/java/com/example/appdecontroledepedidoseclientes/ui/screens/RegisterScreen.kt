@@ -7,13 +7,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -21,14 +19,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.appdecontroledepedidoseclientes.R
+import com.example.appdecontroledepedidoseclientes.ui.components.VascoBadge
 import com.example.appdecontroledepedidoseclientes.ui.viewmodel.RegisterState
 import com.example.appdecontroledepedidoseclientes.ui.viewmodel.RegisterViewModel
 import kotlinx.coroutines.launch
 
-/**
- * --- TELA DE CADASTRO DE USUÁRIO ---
- * Permite que novos usuários se registrem no sistema.
- */
 @Composable
 fun RegisterScreen(
     navController: NavController,
@@ -42,12 +37,10 @@ fun RegisterScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // LaunchedEffect para reagir a mudanças no estado
     LaunchedEffect(registerState) {
         when (registerState) {
             is RegisterState.Success -> {
                 viewModel.resetState()
-                // Navega de volta para login com sucesso
                 navController.navigate("login") {
                     popUpTo("register") { inclusive = true }
                 }
@@ -84,7 +77,7 @@ fun RegisterScreen(
                     .fillMaxSize()
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceEvenly
+                verticalArrangement = Arrangement.Top
             ) {
                 // TopBar customizada
                 Row(
@@ -104,24 +97,13 @@ fun RegisterScreen(
                     )
                 }
 
-                // Logo/Ícone
-                Surface(
-                    modifier = Modifier.size(90.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    tonalElevation = 8.dp
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Outlined.PersonAdd,
-                            contentDescription = null,
-                            modifier = Modifier.size(45.dp),
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Título
+                // Agora usa o VascoBadge com a sua imagem
+                VascoBadge(badgeSize = 90.dp)
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
                     text = "Novo Usuário",
                     style = MaterialTheme.typography.headlineMedium,
@@ -134,7 +116,8 @@ fun RegisterScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                // Formulário
+                Spacer(modifier = Modifier.height(32.dp))
+
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(32.dp),
@@ -145,7 +128,6 @@ fun RegisterScreen(
                         modifier = Modifier.padding(24.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // Campo Username
                         OutlinedTextField(
                             value = username,
                             onValueChange = { username = it },
@@ -156,7 +138,6 @@ fun RegisterScreen(
                             singleLine = true
                         )
 
-                        // Campo Senha
                         OutlinedTextField(
                             value = senha,
                             onValueChange = { senha = it },
@@ -168,7 +149,6 @@ fun RegisterScreen(
                             singleLine = true
                         )
 
-                        // Campo Confirmar Senha
                         OutlinedTextField(
                             value = confirmSenha,
                             onValueChange = { confirmSenha = it },
@@ -182,7 +162,6 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Botão Registrar
                         Button(
                             onClick = {
                                 viewModel.register(username, senha, confirmSenha)
@@ -207,11 +186,12 @@ fun RegisterScreen(
                     }
                 }
 
-                // Link para login
+                Spacer(modifier = Modifier.weight(1f))
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
+                        .padding(bottom = 24.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -224,4 +204,3 @@ fun RegisterScreen(
         }
     }
 }
-

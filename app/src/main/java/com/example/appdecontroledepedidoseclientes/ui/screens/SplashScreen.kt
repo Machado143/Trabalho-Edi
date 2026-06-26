@@ -5,11 +5,8 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
 import com.example.appdecontroledepedidoseclientes.ui.components.VascoBadge
 import androidx.compose.material3.Surface
@@ -75,7 +72,7 @@ fun SplashScreen(navController: NavController) {
             modifier = Modifier.scale(scale.value) // Aplica o valor da animacao aqui
         ) {
             // Composable reutilizável do escudo/bandeira do Vasco
-            VascoBadge(badgeSize = 120.dp, vTextSize = 52.sp)
+            VascoBadge(badgeSize = 120.dp)
             Spacer(modifier = Modifier.height(24.dp))
             // Nome do aplicativo
             Text(

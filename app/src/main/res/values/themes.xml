@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.AppDeControleDePedidosEClientes" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Tema principal do app (cores do Vasco: fundo preto, texto claro) -->
+    <style name="Theme.AppDeControleDePedidosEClientes" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Mantemos estilo simples e aplicamos o splash via tema separado -->
+    </style>
+
+    <!-- Tema de splash que mostra o escudo no fundo preto -->
+    <style name="Theme.AppDeControleDePedidosEClientes.Splash" parent="Theme.AppDeControleDePedidosEClientes">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
 </resources>
